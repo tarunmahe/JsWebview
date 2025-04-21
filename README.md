@@ -1,6 +1,6 @@
 # admobads
 
-ss
+A Capacitor plugin for displaying web content in a WebView.
 
 ## Install
 
@@ -13,24 +13,36 @@ npx cap sync
 
 <docgen-index>
 
-* [`echo(...)`](#echo)
+* [`open(...)`](#open)
+* [`close()`](#close)
 
 </docgen-index>
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### echo(...)
+### open(...)
 
 ```typescript
-echo(options: { value: string; }) => Promise<{ value: string; }>
+open(options: { url: string; showCloseButton?: boolean; }) => Promise<void>
 ```
 
-| Param         | Type                            |
-| ------------- | ------------------------------- |
-| **`options`** | <code>{ value: string; }</code> |
+Opens a WebView with the provided URL
 
-**Returns:** <code>Promise&lt;{ value: string; }&gt;</code>
+| Param         | Type                                                     | Description                                                           |
+| ------------- | -------------------------------------------------------- | --------------------------------------------------------------------- |
+| **`options`** | <code>{ url: string; showCloseButton?: boolean; }</code> | Options containing the URL to open and whether to show a close button |
+
+--------------------
+
+
+### close()
+
+```typescript
+close() => Promise<void>
+```
+
+Closes the currently open WebView
 
 --------------------
 
