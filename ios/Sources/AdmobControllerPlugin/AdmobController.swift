@@ -41,9 +41,8 @@ import WebKit
             self.webView = WKWebView(frame: .zero, configuration: config) // Use the new config
             self.webView?.navigationDelegate = self
 
-            // Disable scrolling and bouncing
-            self.webView?.scrollView.isScrollEnabled = false
-            self.webView?.scrollView.bounces = false
+            // Allow scrolling and bouncing (removed disabling lines)
+            // self.webView?.scrollView.bounces = false // Keep bouncing disabled or enable as needed
 
             // Setup auto layout for the web view
             self.webView?.translatesAutoresizingMaskIntoConstraints = false
