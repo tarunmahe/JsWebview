@@ -128,7 +128,6 @@ import WebKit
         self.viewController = nil
         self.webView = nil
         self.closeButton = nil
-        print("AdmobController resources cleaned up.")
     }
 
     // WKNavigationDelegate method to prevent navigation to other pages if needed
