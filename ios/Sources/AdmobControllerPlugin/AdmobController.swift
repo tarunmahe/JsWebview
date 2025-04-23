@@ -2,10 +2,11 @@ import Foundation
 import UIKit
 import WebKit
 
-@objc public class AdmobController: NSObject, WKNavigationDelegate {
+@objc public class AdmobController: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
     private var webView: WKWebView?
     private var viewController: UIViewController?
     private var closeButton: UIButton?
+    private let messageHandlerName = "controllerHandler" // Define a name for the message handler
 
     // Custom view controller class that supports all orientations
     private class WebViewController: UIViewController {
@@ -25,15 +26,19 @@ import WebKit
         }
 
         let block = {
-            // Create configuration that disables bouncing and zooming
+            // Create configuration with user content controller
             let config = WKWebViewConfiguration()
+            let userContentController = WKUserContentController()
+            // Add the message handler
+            userContentController.add(self, name: self.messageHandlerName)
+            config.userContentController = userContentController
 
             // Create a container view with black background for safe area
             let containerView = UIView(frame: UIScreen.main.bounds)
             containerView.backgroundColor = .black
 
-            // Create the web view with configuration - position to respect safe area
-            self.webView = WKWebView(frame: .zero)
+            // Create the web view with the updated configuration
+            self.webView = WKWebView(frame: .zero, configuration: config) // Use the new config
             self.webView?.navigationDelegate = self
 
             // Disable scrolling and bouncing
@@ -100,10 +105,13 @@ import WebKit
 
     @objc public func close() -> Bool {
         let block = {
-            self.viewController?.dismiss(animated: true)
-            self.viewController = nil
-            self.webView = nil
-            self.closeButton = nil
+            self.viewController?.dismiss(animated: true) {
+                // Clean up: remove message handler when dismissed
+                self.webView?.configuration.userContentController.removeScriptMessageHandler(forName: self.messageHandlerName)
+                self.viewController = nil
+                self.webView = nil
+                self.closeButton = nil
+            }
         }
 
         DispatchQueue.main.async(group: nil, qos: .default, flags: [], execute: block)
@@ -127,5 +135,31 @@ import WebKit
         completionHandler(.useCredential, credential)
     }
 
+    // MARK: - WKScriptMessageHandler Delegate
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        // Check if the message is from our handler
+        if message.name == messageHandlerName {
+            // Process the message body
+            // The body can be any object that JS can send (String, Number, Dictionary, Array, etc.)
+            print("Received message from JS: \(message.body)")
 
+            // Example: Handle different message types or data
+            if let messageBody = message.body as? String {
+                if messageBody == "close" {
+                    // If JS sends "closeAd", close the webview
+                    self.close()
+                } else {
+                    // Handle other string messages
+                    print("Received string message: \(messageBody)")
+                }
+            } else if let messageDict = message.body as? [String: Any] {
+                // Handle dictionary messages
+                print("Received dictionary message: \(messageDict)")
+                if let action = messageDict["action"] as? String, action == "close" {
+                     self.close()
+                }
+            }
+            // Add more handling as needed for different data types or structures
+        }
+    }
 }
