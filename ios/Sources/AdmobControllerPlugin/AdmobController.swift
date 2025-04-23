@@ -104,19 +104,31 @@ import WebKit
     }
 
     @objc public func close() -> Bool {
-        let block = {
-            self.viewController?.dismiss(animated: true) {
-                // Clean up: remove message handler when dismissed
-                self.webView?.configuration.userContentController.removeScriptMessageHandler(forName: self.messageHandlerName)
-                self.viewController = nil
-                self.webView = nil
-                self.closeButton = nil
+        // Ensure dismissal and cleanup happens on the main thread
+        DispatchQueue.main.async {
+            // Check if viewController exists before attempting to dismiss
+            guard let vc = self.viewController else {
+                // If already dismissed or nil, clean up remaining resources
+                self.cleanupResources()
+                return
+            }
+
+            vc.dismiss(animated: true) {
+                // Clean up resources in the completion handler after dismissal
+                self.cleanupResources()
             }
         }
-
-        DispatchQueue.main.async(group: nil, qos: .default, flags: [], execute: block)
-
         return true
+    }
+
+    // Helper function for cleanup to avoid repetition
+    private func cleanupResources() {
+        // Use optional chaining for safety
+        self.webView?.configuration.userContentController.removeScriptMessageHandler(forName: self.messageHandlerName)
+        self.viewController = nil
+        self.webView = nil
+        self.closeButton = nil
+        print("AdmobController resources cleaned up.")
     }
 
     // WKNavigationDelegate method to prevent navigation to other pages if needed
